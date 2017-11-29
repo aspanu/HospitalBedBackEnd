@@ -34,11 +34,26 @@ class BedRequests {
         return -1
     }
 
-    @Path("/bed")
+    @Path("/bed/clear")
     @POST
     fun clearBed(@QueryParam("bedNum") bedNum: Int): Int {
         beds.clearBed(bedNum)
+        assignBedIfNecessary()
         return bedNum
     }
+
+    private fun assignBedIfNecessary() {
+        if (requests.isEmpty()) {
+            return
+        }
+        val bed = beds.getNextFreeBed() ?: return // If someone beat us to this bed, then just don't do anything
+        val request = requests.pop()
+        beds.takeBed(bed)
+
+        request.timeFilled = LocalDateTime.now()
+        // TODO: callback to the OR that they have a bed
+        // callbackForBedDone(request, bed)
+    }
+
 
 }
